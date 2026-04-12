@@ -13,24 +13,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Sort SQL and DSA files
+      - name: Sort SQL problem folders
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
 
+          # Loop through every problem folder in DSA
           for folder in DSA/*/; do
-            if find "$folder" -name "*.sql" | grep -q .; then
+            # If this folder contains a .sql file, move the ENTIRE folder to SQL
+            if find "$folder" -maxdepth 1 -name "*.sql" | grep -q .; then
               problem=$(basename "$folder")
+              echo "Moving $problem to SQL/"
               mv "$folder" "SQL/$problem"
-              echo "Moved $problem to SQL/"
             fi
           done
 
-          find DSA -empty -type d -delete
-
+          # Commit and push only if something changed
           if [ -n "$(git status --porcelain)" ]; then
             git add .
-            git commit -m "Auto-sort: moved SQL problem folders to SQL/"
+            git commit -m "Auto-sort: moved SQL problem folders (README + solution) to SQL/"
             git push
           else
             echo "Nothing to sort"
