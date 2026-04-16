@@ -1,8 +1,11 @@
 # Write your MySQL query statement below
-SELECT IFNULL(
-  (SELECT DISTINCT salary 
-  FROM employee 
-  ORDER BY salary DESC 
-  LIMIT 1 OFFSET 1), 
-  NULL
-) AS SecondHighestSalary;
+WITH Sal as (
+    SELECT DISTINCT salary as SecondHighestSalary,
+DENSE_RANK() OVER(ORDER BY salary DESC) as rnk
+FROM Employee
+)
+
+SELECT MAX(SecondHighestSalary) as SecondHighestSalary
+FROM Sal
+WHERE rnk = 2 
+
