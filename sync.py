@@ -41,53 +41,48 @@ os.makedirs(folder, exist_ok=True)
 
 def get_all_submissions():
     submissions = []
-    offset = 0
-    limit = 20
-
-    while True:
-        query = {
-            "query": """
-            query submissionList($offset: Int!, $limit: Int!) {
-              submissionList(offset: $offset, limit: $limit) {
-                hasNext
-                submissions {
-                  id
-                  title
-                  titleSlug
-                  statusDisplay
-                  lang
-                  timestamp
-                }
-              }
-            }
-            """,
-            "variables": {"offset": offset, "limit": limit}
+    
+    # First get your username
+    profile_query = {
+        "query": """
+        query globalData {
+          userStatus {
+            username
+          }
         }
+        """
+    }
+    resp = requests.post(GRAPHQL_URL, json=profile_query, headers=HEADERS)
+    resp_json = resp.json()
+    print("Profile response:", resp_json)
+    
+    username = resp_json["data"]["userStatus"]["username"]
+    print(f"Logged in as: {username}")
 
-        resp = requests.post(GRAPHQL_URL, json=query, headers=HEADERS)
-        resp_json = resp.json()
-        print("RAW RESPONSE:", resp_json)
+    # Use recentAcSubmissionList instead
+    query = {
+        "query": """
+        query recentAcSubmissions($username: String!, $limit: Int!) {
+          recentAcSubmissionList(username: $username, limit: $limit) {
+            id
+            title
+            titleSlug
+            lang
+            timestamp
+          }
+        }
+        """,
+        "variables": {"username": username, "limit": 100}
+    }
 
-        if "data" not in resp_json or resp_json["data"] is None:
-            print("ERROR: API returned no data — session may be expired.")
-            print("Response:", resp_json)
-            break
+    resp = requests.post(GRAPHQL_URL, json=query, headers=HEADERS)
+    resp_json = resp.json()
+    print("Submissions response:", resp_json)
 
-        submission_list = resp_json["data"].get("submissionList")
-        if submission_list is None:
-            print("ERROR: submissionList is null — possible rate limit.")
-            break
-
-        subs = submission_list.get("submissions") or []
-        for sub in subs:
-            if sub["statusDisplay"] == "Accepted":
-                submissions.append(sub)
-
-        if not submission_list.get("hasNext"):
-            break
-
-        offset += limit
-        time.sleep(1)
+    subs = resp_json.get("data", {}).get("recentAcSubmissionList") or []
+    for sub in subs:
+        sub["statusDisplay"] = "Accepted"
+        submissions.append(sub)
 
     return submissions
 
