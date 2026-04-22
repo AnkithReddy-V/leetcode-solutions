@@ -66,6 +66,7 @@ def get_all_submissions():
 
         resp = requests.post(GRAPHQL_URL, json=query, headers=HEADERS)
         resp_json = resp.json()
+        print("RAW RESPONSE:", resp_json)
 
         if "data" not in resp_json or resp_json["data"] is None:
             print("ERROR: API returned no data — session may be expired.")
