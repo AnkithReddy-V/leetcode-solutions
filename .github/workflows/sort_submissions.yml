@@ -20,11 +20,17 @@ jobs:
 
           # Loop through every problem folder in DSA
           for folder in DSA/*/; do
-            # If this folder contains a .sql file, move the ENTIRE folder to SQL
             if find "$folder" -maxdepth 1 -name "*.sql" | grep -q .; then
               problem=$(basename "$folder")
-              echo "Moving $problem to SQL/"
-              mv "$folder" "SQL/$problem"
+              if [ -d "SQL/$problem" ]; then
+                echo "Updating $problem in SQL/"
+                # Copy only the solution file(s) over, keep existing README
+                find "$folder" -maxdepth 1 -name "*.sql" -exec cp {} "SQL/$problem/" \;
+                rm -rf "$folder"
+              else
+                echo "Moving $problem to SQL/"
+                mv "$folder" "SQL/$problem"
+              fi
             fi
           done
 
