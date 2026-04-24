@@ -8,4 +8,3 @@ FROM Employee
 SELECT MAX(SecondHighestSalary) as SecondHighestSalary
 FROM Sal
 WHERE rnk = 2 
-
