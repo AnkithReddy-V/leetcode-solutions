@@ -170,9 +170,8 @@ for sub in submissions:
                 f.write(details.get("content", "_Description not available_"))
 
         solution_path = os.path.join(problem_folder, f"solution.{ext}")
-        if not os.path.exists(solution_path):
-            with open(solution_path, "w", encoding="utf-8") as f:
-                f.write(code)
+        with open(solution_path, "w", encoding="utf-8") as f:
+            f.write(code)
 
         print(f"  Saved → {problem_folder}/")
 
